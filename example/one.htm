@@ -4,26 +4,121 @@
         <meta charset="UTF-8">
         <title>Example One</title>
 
+        <link href='http://fonts.googleapis.com/css?family=Arvo' rel='stylesheet' type='text/css'>
         <style>
-            svg path {
-                fill: none;
-                stroke: blue;
-                stroke-width: 1.5px;
+            /* Eric Meyer's Reset CSS v2.0 - http://cssreset.com */
+            html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:none}table{border-collapse:collapse;border-spacing:0}
+
+            /* https://kuler.adobe.com/Taz-color-theme-4120706/edit */
+            body {
+                font-family: "Arvo", Georgia, serif;
+                font-size: 16px;
             }
 
-            svg circle {
-                fill: orange;
-                stroke: none;
+            #top-nav {
+                width: 100%;
+                padding: 2em 4em;
+                border-bottom: 1px solid #ccc;
+                color: #999;
+            }
+
+            #top-nav:after, #top-nav .periods:after {
+                visibility: hidden;
+                display: block;
+                font-size: 0;
+                content: " ";
+                clear: both;
+                height: 0;
+            }
+
+            #top-nav .periods {
+                text-align: center;
+            }
+
+            #top-nav .periods li {
+                display: inline-block;
+                padding: 1em 1.4em;
+                border: 1px solid #ccc;
+                cursor: pointer;
+            }
+
+            #top-nav .periods li:first-child {
+                border-radius: 1em 0 0 1em;
+            }
+
+            #top-nav .periods li:nth-child(n+2) {
+                border-left: 0;
+            }
+
+            #top-nav .periods li:last-child {
+                border-radius: 0 1em 1em 0;
+            }
+
+            #top-nav .periods li:hover {
+                color: #666;
+            }
+
+            #map {
+                position: relative;
+            }
+
+            .line {
+                fill: none;
+                stroke: #30505C;
+                stroke-width: 4px;
+            }
+
+            .station {
+                fill: #fff;
+                stroke: #30505C;
+                stroke-width: 2px;
+            }
+
+            .station:hover {
+                fill: #45B29D;
+                stroke: #45B29D;
+            }
+
+            .tooltip {
+                display: none;
+                position: absolute;
+                padding: 1em 1.4em;
+                border: 2px solid #30505C;
+                background: #fff;
+            }
+
+            .tooltip h3 {
+
+            }
+
+            .tooltip-visible {
+                display: block;
             }
         </style>
     </head>
     <body>
+        <nav id="top-nav">
+            <ul class="periods">
+                <li>Yearly</li>
+                <li>Monthly</li>
+                <li>Daily</li>
+                <li>Hourly</li>
+            </ul>
+        </nav>
+
+        <nav id="side-nav">
+
+        </nav>
+
+        <div id="map"></div>
+
         <script src="d3.js"></script>
         <script>
             var margin = {top: 10, right: 10, bottom: 10, left: 10}
               , width = 960 - margin.left - margin.right
               , height = 600 - margin.top - margin.bottom
               , data
+              , map
               , svg
               , x
               , y
@@ -32,21 +127,18 @@
               , maxLat
               , minLon
               , maxLon
-              , scaleLat
-              , scaleLon
-              , scale
               , domainLat
               , domainLon
             ;
 
             data = [
-                {name: "Hove",            lat: 50.835214, lon: -0.170787},
-                {name: "Burgess Hill",    lat: 50.953611, lon: -0.127738},
-                {name: "Haywards Heath",  lat: 51.005272, lon: -0.105336},
-                {name: "Three Bridges",   lat: 51.116935, lon: -0.161211},
-                {name: "Gatwick Airport", lat: 51.156466, lon: -0.161040},
-                {name: "East Croydon",    lat: 51.375462, lon: -0.092751},
-                {name: "London Bridge",   lat: 51.505132, lon: -0.086024},
+                {name: "Hove",            lat: 50.835214, lon: -0.170787, size: 2},
+                {name: "Burgess Hill",    lat: 50.953611, lon: -0.127738, size: 1},
+                {name: "Haywards Heath",  lat: 51.005272, lon: -0.105336, size: 3},
+                {name: "Three Bridges",   lat: 51.116935, lon: -0.161211, size: 3},
+                {name: "Gatwick Airport", lat: 51.156466, lon: -0.161040, size: 2},
+                {name: "East Croydon",    lat: 51.375462, lon: -0.092751, size: 4},
+                {name: "London Bridge",   lat: 51.505132, lon: -0.086024, size: 5},
             ];
 
             for (var i in data) {
@@ -99,27 +191,48 @@
 
                         p = points[i];
                     }
-                    console.log(path.join(" "));
+
                     return path.join(" ");
                 })
                 .x(function(d) { return x(d.lon); })
                 .y(function(d) { return y(d.lat); })
 
-            svg = d3.select('body').append('svg')
+            map = d3.select('#map');
+            svg = map.append('svg')
                 .datum(data)
                 .attr('width', width + margin.left + margin.right)
                 .attr('height', height + margin.top + margin.bottom);
 
             svg.append('path')
+                .attr('class', 'line')
                 .attr('d', line);
 
-            svg.selectAll('circle')
+            circle = svg.selectAll('circle')
                 .data(data)
               .enter().append('circle')
-                .attr('r', 2.5)
+                .attr('class', 'station')
                 .attr('cx', line.x())
                 .attr('cy', line.y())
-                .attr('r', 5);
+                .attr('r', function(d) { return 4 + d.size; })
+                .on('mouseover', function(d) {
+                    d3.selectAll('[data-station="'+d.name+'"]')
+                        .classed('tooltip-visible', true);
+                })
+                .on('mouseout', function(d) {
+                    d3.selectAll('[data-station="'+d.name+'"]')
+                        .classed('tooltip-visible', false);
+                });
+
+            map.selectAll('.tooltip')
+                .data(data)
+              .enter().append('div')
+                .attr('class', 'tooltip')
+                .attr('data-station', function(d) { return d.name; })
+                .style({
+                    'left': function(d) { return (line.x()(d) + 20) + 'px'; },
+                    'top':  function(d) { return (line.y()(d) - 20) + 'px'; },
+                })
+                .append('h3').text(function(d) { return d.name; });
         </script>
     </body>
 </html>
