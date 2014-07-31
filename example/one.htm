@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Example One</title>
+
+        <style>
+            svg path {
+                fill: none;
+                stroke: blue;
+                stroke-width: 1.5px;
+            }
+
+            svg circle {
+                fill: orange;
+                stroke: none;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="d3.js"></script>
+        <script>
+            var margin = {top: 10, right: 10, bottom: 10, left: 10}
+              , width = 960 - margin.left - margin.right
+              , height = 600 - margin.top - margin.bottom
+              , data
+              , svg
+              , x
+              , y
+              , line
+              , minLat
+              , maxLat
+              , minLon
+              , maxLon
+              , scaleLat
+              , scaleLon
+              , scale
+              , domainLat
+              , domainLon
+            ;
+
+            data = [
+                {name: "Hove",            lat: 50.835214, lon: -0.170787},
+                {name: "Burgess Hill",    lat: 50.953611, lon: -0.127738},
+                {name: "Haywards Heath",  lat: 51.005272, lon: -0.105336},
+                {name: "Three Bridges",   lat: 51.116935, lon: -0.161211},
+                {name: "Gatwick Airport", lat: 51.156466, lon: -0.161040},
+                {name: "East Croydon",    lat: 51.375462, lon: -0.092751},
+                {name: "London Bridge",   lat: 51.505132, lon: -0.086024},
+            ];
+
+            for (var i in data) {
+                if (minLat == null || data[i].lat < minLat) minLat = data[i].lat;
+                if (maxLat == null || data[i].lat > maxLat) maxLat = data[i].lat;
+                if (minLon == null || data[i].lon < minLon) minLon = data[i].lon;
+                if (maxLon == null || data[i].lon > maxLon) maxLon = data[i].lon;
+            }
+
+            if (Math.abs(maxLon - minLon) > Math.abs(maxLat - minLat)) {
+                domainLon = [minLon, maxLon];
+                domainLat = [minLat, maxLat + (Math.abs(maxLon - minLon) - Math.abs(maxLat - minLat))];
+            } else {
+                domainLon = [minLon, maxLon + (Math.abs(maxLat - minLat) - Math.abs(maxLon - minLon))];
+                domainLat = [minLat, maxLat];
+            }
+
+            x = d3.scale.linear()
+                .domain(domainLon)
+                .range([margin.left, width]);
+
+            y = d3.scale.linear()
+                .domain(domainLat)
+                .range([height, margin.top]);
+
+            line = d3.svg.line()
+                .interpolate(function(points) {
+                    var i = 0
+                      , n = points.length
+                      , p = points[0]
+                      , path = [ p[0], ",", p[1] ]
+                      , dx
+                      , dy
+                    ;
+
+                    while (++i < n) {
+                        dx = Math.abs(points[i][0] - p[0]);
+                        dy = Math.abs(points[i][1] - p[1]);
+
+                        // If the line is going horizontal
+                        if (Math.abs(dx) > Math.abs(dy)) {
+                            path.push("L", points[i][0] + dy, p[1]);
+                            path.push("L", points[i][0], points[i][1]);
+                        }
+                        // else the line is going vertical
+                        else {
+                            path.push("L", p[0], points[i][1] + dx);
+                            path.push("L", points[i][0], points[i][1]);
+                        }
+
+                        p = points[i];
+                    }
+                    console.log(path.join(" "));
+                    return path.join(" ");
+                })
+                .x(function(d) { return x(d.lon); })
+                .y(function(d) { return y(d.lat); })
+
+            svg = d3.select('body').append('svg')
+                .datum(data)
+                .attr('width', width + margin.left + margin.right)
+                .attr('height', height + margin.top + margin.bottom);
+
+            svg.append('path')
+                .attr('d', line);
+
+            svg.selectAll('circle')
+                .data(data)
+              .enter().append('circle')
+                .attr('r', 2.5)
+                .attr('cx', line.x())
+                .attr('cy', line.y())
+                .attr('r', 5);
+        </script>
+    </body>
+</html>
