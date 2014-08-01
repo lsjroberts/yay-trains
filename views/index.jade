@@ -1,14 +1,45 @@
 extends layouts/master
 
 block content
-    nav#top-nav
-        ul.periods
-            li Yearly
-            li Monthly
-            li.selected Daily
-            li Hourly
-            li.now Now
+    div.row
+        nav#top-nav.horizontal-nav.column.large-12
+            div.options
+                h2 Select a period
+                ul
+                    li Yearly
+                    li Monthly
+                    li.selected Daily
+                    li Hourly
+                    li.highlight Now
 
-    div#map
+            div.form-group
+                h2 Or enter a time
+                div.input-group
+                    label From
+                    input(name="fromDate", type="date")
+                    input(name="fromTime", type="time")
+                div.input-group
+                    label To
+                    input(name="toDate", type="date")
+                    input(name="toTime", type="time")
 
-    script(src="/scripts/combined.js")
+    div.row
+        div.column.large-10
+            div#map
+
+        nav#side-nav.vertical-nav.column.large-2
+            section.layers
+                h2 Layers
+
+                div.delays
+                    h3 Delays
+                    div.percentage
+                        h4 Percentage
+                        p View delays by percentage
+                    div.number
+                        h4 Number
+                        p View delays by the number over the chosen time period
+
+                div.journey
+
+                div.usage
