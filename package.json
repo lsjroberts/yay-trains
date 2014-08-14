@@ -3,6 +3,7 @@
     "express": "^4.7.2",
     "jade": "^1.5.0",
     "mongodb": "^1.4.7",
+    "ospoint": "^0.2.0",
     "q": "^1.0.1"
   },
   "devDependencies": {

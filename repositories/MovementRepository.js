@@ -1,19 +1,10 @@
 var
     q = require('q')
-  , mongo = require('mongodb')
+  , movementTransformer = require('../transformers/MovementTransformer')
 ;
 
-var MovementRepository = function(host, port) {
-    this.db = new mongo.Db('node-mongo-network-rail', new mongo.Server(host, port, {auto_reconnect: true}, {}));
-    this.db.open(function(e, db) {
-        if (e) throw e;
-
-        // temp clear out movements
-        db.collection('movements').remove();
-    });
-    this.db.on('close', function() {
-        // console.log('closed');
-    });
+var MovementRepository = function(db) {
+    this.db = db;
 };
 
 MovementRepository.prototype.collection = function() {
@@ -66,9 +57,11 @@ MovementRepository.prototype.get = function(search) {
 };
 
 MovementRepository.prototype.create = function(message) {
-    this.db.collection('movements').insert(message, function(e) {
+    var movement = movementTransformer.transform(message);
+
+    this.db.collection('movements').insert(movement, function(e) {
         if (e) throw e;
-        console.log('Created', message);
+        console.log('[' + Date.now() + '] Created', movement);
     });
 };
 
