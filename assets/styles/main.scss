@@ -188,14 +188,13 @@ h2 {
     }
 }
 
-.statuses {
-
-    .train {
+.stream {
+    .stream-item {
         padding: 20px 30px;
         border: 1px solid $grey-border-light;
         box-shadow: 1px 1px 1px 0 $grey-shadow;
 
-        & + .train {
+        & + .stream-item {
             margin-top: 20px;
         }
 

@@ -1,19 +1,28 @@
-var locations = require('../repositories/LocationRepository');
+var q = require('q')
+  , config = require('../config.json')
+  , db = require('../repositories/Database').connect(config.database.name, config.database.host, config.database.port)
+  , locations = new (require('../repositories/LocationRepository'))(db);
 
 var MovementTransformer = function() {
 
 };
 
 MovementTransformer.prototype.transform = function(movement) {
-    return {
-        'messageType': this.messageType(movement.header.msg_type),
-        'eventType': this.eventType(movement.body.event_type),
-        'trainID': movement.body.train_id,
-        'plannedAt': this.timestampToDateTime(movement.body.planned_timestamp),
-        'actualAt': this.timestampToDateTime(movement.body.actual_timestamp),
-        'location': this.stanoxToLocation(movement.body.loc_stanox),
-        'nextLocation': this.stanoxToLocation(movement.body.next_report_stanox),
-    };
+    var deferred = q.defer();
+
+    movement.actualAt = this.timestampToDate(movement.timestamp);
+    movement.plannedAt = this.timestampToDate(movement.plannedTimestamp);
+
+    locations.findByStanox(movement.stanox)
+      .then(function(location) {
+        movement.location = location;
+        return locations.findByStanox(movement.nextStanox);
+    }).then(function(location) {
+        movement.nextLocation = location;
+        deferred.resolve(movement);
+    })
+
+    return deferred.promise;
 };
 
 MovementTransformer.prototype.messageType = function(type) {
@@ -24,20 +33,8 @@ MovementTransformer.prototype.eventType = function(type) {
     return type;
 }
 
-MovementTransformer.prototype.timestampToDateTime = function(timestamp) {
-    return timestamp;
-}
-
-MovementTransformer.prototype.stanoxToLocation = function(stanox) {
-    var location;
-
-    if (location = locations.findByStanox(stanox)) {
-        console.log('Found', location);
-        return location;
-    }
-
-    console.log('Create', stanox);
-    return locations.createFromStanox(stanox);
+MovementTransformer.prototype.timestampToDate = function(timestamp) {
+    return new Date(Math.floor(timestamp));
 }
 
 module.exports = new MovementTransformer;

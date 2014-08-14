@@ -1,0 +1,21 @@
+extends layouts/master
+
+block content
+    div.row
+        h1 Movements
+
+        section.movements.stream
+
+    script#movementTemplate(type="text/template")
+        article.movement.stream-item
+            h2 {{ movement.trainID }}
+            dl
+                dt Location
+                dd {{ movement.location.locationName }}
+                dd {{ movement.location.latitude }},{{ movement.location.longitude }}
+
+                dt Time
+                dd {{ movement.actualAt }}
+
+                dt Delay
+                dd {{ movement.timetableVariation }} minutes late

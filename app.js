@@ -1,6 +1,8 @@
 var
     express = require('express')
   , app = express()
+  , io = require('socket.io').listen(3001)
+  , sockets = []
 
   , config = require('./config.json')
 
@@ -14,6 +16,11 @@ var
     }
 ;
 
+io.sockets.on('connection', function(socket) {
+    sockets.push(socket);
+    socket.emit('connected');
+})
+
 // Config
 app.set('views', __dirname + '/views/');
 app.set('view engine', 'jade');
@@ -24,16 +31,16 @@ app.use('/styles', express.static(__dirname + '/build/styles'));
 app.use('/scripts', express.static(__dirname + '/build/scripts'));
 
 // Rail
-// rail.feeds.connect(config.networkrail.username, config.networkrail.password);
-// rail.feeds.listen(rail.feeds.topics.movements.all, null, function(body, headers) {
-//     body.forEach(function(message) {
-//         repositories.movements.create(message);
-//     });
-// });
-// rail.movements.listen(function(movements) {
-//     console.log(movements);
-// });
-
+rail.feeds.connect(config.networkrail.username, config.networkrail.password);
+rail.movements.listen(function(movements) {
+    movements.forEach(function(movement) {
+        repositories.movements.create(movement).then(function(movement) {
+            for (var i = 0, len = sockets.length; i < len; i++) {
+                sockets[i].emit('movement', movement);
+            }
+        });
+    });
+});
 
 // Routes
 app.get('/', function(req, res) {

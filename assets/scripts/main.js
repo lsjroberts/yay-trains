@@ -7,8 +7,6 @@ var margin = {top: 10, right: 10, bottom: 10, left: 10}
   , x
   , y
   , line
-  , lineUp
-  , lineDown
   , minLat
   , maxLat
   , minLon
@@ -50,49 +48,35 @@ y = d3.scale.linear()
     .domain(domainLat)
     .range([height, margin.top]);
 
-line = function(points, direction) {
-var i = 0
-      , n = points.length
-      , p = points[0]
-      , path = [ p[0], ",", p[1] ]
-      , dx
-      , dy
-      , dirMod
-    ;
-
-    dirMod = (direction == "up") ? -2 : 2;
-
-    while (++i < n) {
-        dx = Math.abs(points[i][0] - p[0]);
-        dy = Math.abs(points[i][1] - p[1]);
-
-        // If the line is going horizontal
-        if (Math.abs(dx) > Math.abs(dy)) {
-            path.push("L", points[i][0] + dy, p[1]);
-            path.push("L", points[i][0], points[i][1]);
-        }
-        // else the line is going vertical
-        else {
-            path.push("L", p[0], points[i][1] + dx);
-            path.push("L", points[i][0], points[i][1]);
-        }
-
-        p = points[i];
-    }
-
-    return path.join(" ");
-}
-
-lineUp = d3.svg.line()
+line = d3.svg.line()
     .interpolate(function(points) {
-        return line(points, "up");
-    })
-    .x(function(d) { return x(d.lon); })
-    .y(function(d) { return y(d.lat); })
+        var i = 0
+          , n = points.length
+          , p = points[0]
+          , path = [ p[0], ",", p[1] ]
+          , dx
+          , dy
+        ;
 
-lineDown = d3.svg.line()
-    .interpolate(function(points) {
-        return line(points, "down");
+        while (++i < n) {
+            dx = Math.abs(points[i][0] - p[0]);
+            dy = Math.abs(points[i][1] - p[1]);
+
+            // If the line is going horizontal
+            if (Math.abs(dx) > Math.abs(dy)) {
+                path.push("L", points[i][0] + dy, p[1]);
+                path.push("L", points[i][0], points[i][1]);
+            }
+            // else the line is going vertical
+            else {
+                path.push("L", p[0], points[i][1] + dx);
+                path.push("L", points[i][0], points[i][1]);
+            }
+
+            p = points[i];
+        }
+
+        return path.join(" ");
     })
     .x(function(d) { return x(d.lon); })
     .y(function(d) { return y(d.lat); })
@@ -104,14 +88,8 @@ svg = map.append('svg')
     .attr('height', height + margin.top + margin.bottom);
 
 svg.append('path')
-    .classed('line', true)
-    .classed('line-up', true)
-    .attr('d', lineUp);
-
-svg.append('path')
-    .classed('line', true)
-    .classed('line-down', true)
-    .attr('d', lineDown);
+    .attr('class', 'line')
+    .attr('d', line);
 
 circle = svg.selectAll('circle')
     .data(data)

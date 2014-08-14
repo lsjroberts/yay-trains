@@ -3,47 +3,26 @@ var
   , movementTransformer = require('../transformers/MovementTransformer')
 ;
 
-var MovementRepository = function(db) {
-    this.db = db;
-};
-
-MovementRepository.prototype.collection = function() {
-    var deferred = q.defer()
-    ;
-
-    this.db.collection('movements', function(e, movements) {
-        if (e) throw e;
-        deferred.resolve(movements);
-    });
-
-    return deferred.promise;
+var MovementRepository = function(connection) {
+    this.connection = connection;
 };
 
 MovementRepository.prototype.all = function() {
-    // console.log(1);
-    // var promise = this.collection().then(function(collection) {
-    //     console.log(2);
-    //     collection.find().toArray(function(e, results) {
-    //         console.log(3);
-    //         if (e) throw e;
-    //         promise.then(results);
-    //     });
-    // });
-
-    // return promise;
-
     var deferred = q.defer();
-    this.db.collection('movements').find().toArray(function(e, movements) {
-        if (e) throw e;
-        deferred.resolve(movements);
+
+    this.connection.then(function(db) {
+        db.collection('movements').find().toArray(function(e, movements) {
+            if (e) throw e;
+            deferred.resolve(movements);
+        });
     });
 
     return deferred.promise;
 };
 
 MovementRepository.prototype.find = function(id) {
-    return this.collection().then(function(collection) {
-        collection.findOne({
+    this.connection.then(function(db) {
+        db.collection('movements').findOne({
             _id: id
         }, function(e, results) {
             if (e) throw e;
@@ -53,15 +32,32 @@ MovementRepository.prototype.find = function(id) {
 };
 
 MovementRepository.prototype.get = function(search) {
-    // return this.all().then(...);
+    return this.connection.then(function(db) {
+        return db.collection('movements');
+    });
 };
 
-MovementRepository.prototype.create = function(message) {
-    var movement = movementTransformer.transform(message);
+MovementRepository.prototype.create = function(movement) {
+    var self = this
+      , deferred = q.defer()
+    ;
 
-    this.db.collection('movements').insert(movement, function(e) {
-        if (e) throw e;
-        console.log('[' + Date.now() + '] Created', movement);
+    // movementTransformer.transform(message).then(function(movement) {
+        self.connection.then(function(db) {
+            db.collection('movements').insert(movement, function(e) {
+                if (e) throw e;
+                deferred.resolve(movement);
+                console.log('[' + Date.now() + '] Created', movement.trainID);
+            });
+
+            db.collection('movements').count(function(e) {
+                if (e) throw e;
+            });
+        });
+    // });
+
+    return deferred.promise.then(function(movement) {
+        return movementTransformer.transform(movement);
     });
 };
 
