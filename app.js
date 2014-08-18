@@ -192,6 +192,6 @@ process.on('exit', function() {
 })
 
 // Server
-server = app.listen(3000, function() {
+server = app.listen(3002, function() {
     console.log('Listening on port %d', server.address().port);
 });
