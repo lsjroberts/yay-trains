@@ -1,0 +1,17 @@
+extends layouts/master
+
+block content
+    div.row
+        h1 Companies
+
+        section.stream
+            each company in companies
+                article.stream-item
+                    h2= company._id
+
+                    dl
+                        dt Avg. Variation
+                        dd= company.averageVariation
+
+                        dt Activity Rank
+                        dd= company.activityRank * 100

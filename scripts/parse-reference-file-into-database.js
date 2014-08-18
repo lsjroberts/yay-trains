@@ -10,6 +10,7 @@ locations.empty();
 
 var data = rail.reference.parseReferenceFile(function(line) {
     if (line.recordType == 'LOC') {
+        console.log(Date.now(), line.locationName);
         locations.createFromReference(line);
     }
 });

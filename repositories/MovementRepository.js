@@ -31,6 +31,21 @@ MovementRepository.prototype.find = function(id) {
     });
 };
 
+MovementRepository.prototype.findBy = function(property, value) {
+    var deferred = q.defer();
+
+    this.connection.then(function(db) {
+        db.collection('movement').find({
+            property: value
+        }, function(e, results) {
+            if (e) throw e;
+            deferred.resolve(results);
+        });
+    });
+
+    return deferred.promise;
+};
+
 MovementRepository.prototype.get = function(search) {
     return this.connection.then(function(db) {
         return db.collection('movements');
@@ -42,19 +57,13 @@ MovementRepository.prototype.create = function(movement) {
       , deferred = q.defer()
     ;
 
-    // movementTransformer.transform(message).then(function(movement) {
-        self.connection.then(function(db) {
-            db.collection('movements').insert(movement, function(e) {
-                if (e) throw e;
-                deferred.resolve(movement);
-                console.log('[' + Date.now() + '] Created', movement.trainID);
-            });
-
-            db.collection('movements').count(function(e) {
-                if (e) throw e;
-            });
+    self.connection.then(function(db) {
+        db.collection('movements').insert(movement, function(e) {
+            if (e) throw e;
+            deferred.resolve(movement);
+            console.log('[' + Date.now() + '] Created', movement.trainID);
         });
-    // });
+    });
 
     return deferred.promise.then(function(movement) {
         return movementTransformer.transform(movement);

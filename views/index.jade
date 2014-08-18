@@ -1,7 +1,7 @@
 extends layouts/master
 
 block content
-    div.row
+    //- div.row.bleed
         nav#top-nav.horizontal-nav.column.large-12
             div.options
                 h2 Select a period
@@ -23,11 +23,11 @@ block content
                     input(name="toDate", type="date")
                     input(name="toTime", type="time")
 
-    div.row
-        div.column.large-10
+    div.row.bleed
+        div.column.large-12
             div#map
 
-        nav#side-nav.vertical-nav.column.large-2
+        //- nav#side-nav.vertical-nav.column.large-2
             section.layers
                 h2 Layers
 

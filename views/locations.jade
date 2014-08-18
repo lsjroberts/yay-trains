@@ -4,5 +4,21 @@ block content
     div.row
         h1 Locations
 
-        each location in locations
-            h2= location.locationName
+        section.search
+            div.form-group
+                label Search
+                input(type="search")
+
+        section.search-results.stream
+            each location in locations
+                article.search-item.stream-item
+                    h2= location.locationName
+                    dl
+                        dt Latitude
+                        dd= location.latitude
+
+                        dt Longitude
+                        dd= location.longitude
+
+                        dt Average Variation
+                        dd= location.averageVariation

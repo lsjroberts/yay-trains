@@ -1,119 +1,108 @@
-var margin = {top: 10, right: 10, bottom: 10, left: 10}
-  , width = 960 - margin.left - margin.right
-  , height = 600 - margin.top - margin.bottom
-  , data
-  , map
+var $map = $('#map')
+  , width
+  , height
+  , projection
+  , path
   , svg
-  , x
-  , y
-  , line
-  , minLat
-  , maxLat
-  , minLon
-  , maxLon
-  , domainLat
-  , domainLon
+  , g
+  , zoom
 ;
 
-data = [
-    {name: "Hove",            lat: 50.835214, lon: -0.170787, size: 2},
-    {name: "Burgess Hill",    lat: 50.953611, lon: -0.127738, size: 1},
-    {name: "Haywards Heath",  lat: 51.005272, lon: -0.105336, size: 3},
-    {name: "Three Bridges",   lat: 51.116935, lon: -0.161211, size: 3},
-    {name: "Gatwick Airport", lat: 51.156466, lon: -0.161040, size: 2},
-    {name: "East Croydon",    lat: 51.375462, lon: -0.092751, size: 4},
-    {name: "London Bridge",   lat: 51.505132, lon: -0.086024, size: 5},
-];
 
-for (var i in data) {
-    if (minLat == null || data[i].lat < minLat) minLat = data[i].lat;
-    if (maxLat == null || data[i].lat > maxLat) maxLat = data[i].lat;
-    if (minLon == null || data[i].lon < minLon) minLon = data[i].lon;
-    if (maxLon == null || data[i].lon > maxLon) maxLon = data[i].lon;
-}
+projection = d3.geo.mercator()
+    .center([-1.0, 51])
+    .scale(40000)
+    .rotate([0, 0]);
 
-if (Math.abs(maxLon - minLon) > Math.abs(maxLat - minLat)) {
-    domainLon = [minLon, maxLon];
-    domainLat = [minLat, maxLat + (Math.abs(maxLon - minLon) - Math.abs(maxLat - minLat))];
-} else {
-    domainLon = [minLon, maxLon + (Math.abs(maxLat - minLat) - Math.abs(maxLon - minLon))];
-    domainLat = [minLat, maxLat];
-}
+path = d3.geo.path()
+    .projection(projection);
 
-x = d3.scale.linear()
-    .domain(domainLon)
-    .range([margin.left, width]);
+svg = d3.select('#map')
+    .append('svg')
 
-y = d3.scale.linear()
-    .domain(domainLat)
-    .range([height, margin.top]);
+g = svg.append('g');
 
-line = d3.svg.line()
-    .interpolate(function(points) {
-        var i = 0
-          , n = points.length
-          , p = points[0]
-          , path = [ p[0], ",", p[1] ]
-          , dx
-          , dy
-        ;
+d3.json('uk.json', function(error, uk) {
+    width = $(window).width();
+    height = $(window).height();
 
-        while (++i < n) {
-            dx = Math.abs(points[i][0] - p[0]);
-            dy = Math.abs(points[i][1] - p[1]);
+    svg.attr('width', width).attr('height', height);
 
-            // If the line is going horizontal
-            if (Math.abs(dx) > Math.abs(dy)) {
-                path.push("L", points[i][0] + dy, p[1]);
-                path.push("L", points[i][0], points[i][1]);
-            }
-            // else the line is going vertical
-            else {
-                path.push("L", p[0], points[i][1] + dx);
-                path.push("L", points[i][0], points[i][1]);
-            }
+    d3.json('/locations.json', function(error, data) {
+        g.selectAll('circle')
+            .data(data.locations)
+            .enter()
+                .append('circle')
+                .attr('cx', function(d) {
+                    return projection([d.longitude, d.latitude])[0];
+                })
+                .attr('cy', function(d) {
+                    return projection([d.longitude, d.latitude])[1];
+                })
+                .attr('r', 8)
+                .attr('class', 'station')
+                .on('mouseover', function(d) {
+                    d3.selectAll('[data-station="'+d.locationName+'"]')
+                        .classed('tooltip-visible', true);
+                })
+                .on('mouseout', function(d) {
+                    d3.selectAll('[data-station="'+d.locationName+'"]')
+                        .classed('tooltip-visible', false);
+                });
 
-            p = points[i];
-        }
-
-        return path.join(" ");
-    })
-    .x(function(d) { return x(d.lon); })
-    .y(function(d) { return y(d.lat); })
-
-map = d3.select('#map');
-svg = map.append('svg')
-    .datum(data)
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom);
-
-svg.append('path')
-    .attr('class', 'line')
-    .attr('d', line);
-
-circle = svg.selectAll('circle')
-    .data(data)
-  .enter().append('circle')
-    .attr('class', 'station')
-    .attr('cx', line.x())
-    .attr('cy', line.y())
-    .attr('r', function(d) { return 4 + d.size; })
-    .on('mouseover', function(d) {
-        d3.selectAll('[data-station="'+d.name+'"]')
-            .classed('tooltip-visible', true);
-    })
-    .on('mouseout', function(d) {
-        d3.selectAll('[data-station="'+d.name+'"]')
-            .classed('tooltip-visible', false);
+        g.selectAll('.tooltip')
+            .data(data.locations)
+            .enter()
+                .append('div')
+                .attr('class', 'tooltip')
+                .attr('data-station', function(d) { return d.locationName; })
+                .style({
+                    'left': function(d) {
+                        return projection([d.longitude, d.latitude])[0];
+                    },
+                    'top': function(d) {
+                        return projection([d.longitude, d.latitude])[1];
+                    }
+                })
+                .append('h3')
+                .text(function(d) { return d.locationName; });
     });
 
-map.selectAll('.tooltip')
-    .data(data)
-  .enter().append('div')
-    .attr('class', 'tooltip')
-    .attr('data-station', function(d) { return d.name; })
-    .style({
-        'left': function(d) { return (line.x()(d) + 20) + 'px'; },
-        'top':  function(d) { return (line.y()(d) - 20) + 'px'; },
-    })
-    .append('h3').text(function(d) { return d.name; });
+    g.append('path')
+        .datum(topojson.feature(uk, uk.objects.subunits))
+        .attr('d', path.projection(projection))
+        .classed('map-land', true);
+});
+
+var scaleLevels = [
+    [0, .3, 8, 'zoom-1'],
+    [.3, .6, 6, 'zoom-2'],
+    [.6, .9, 4, 'zoom-3'],
+    [.9, 1.2, 3, 'zoom-4'],
+    [1.2, 1.5, 2, 'zoom-5'],
+    [1.5, 100, 1, 'zoom-6'],
+];
+
+zoom = d3.behavior.zoom()
+    .on('zoom', function() {
+        g.attr('transform', 'translate(' + d3.event.translate.join(',') + ')scale(' + d3.event.scale + ')');
+        g.selectAll('circle')
+            .attr('d', path.projection(projection));
+        g.selectAll('path')
+            .attr('d', path.projection(projection));
+        g.selectAll('.tooltip')
+            .attr('d', path.projection(projection));
+
+        for (var i = 0, len = scaleLevels.length; i < len; i++) {
+            if (d3.event.scale >= scaleLevels[i][0] && d3.event.scale < scaleLevels[i][1]) {
+                g.selectAll('.station')
+                    .attr('r', scaleLevels[i][2])
+                    .classed(scaleLevels[i][3], true);
+            } else {
+                g.selectAll('.station')
+                    .classed(scaleLevels[i][3], false);
+            }
+        }
+    });
+
+svg.call(zoom);

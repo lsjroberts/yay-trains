@@ -9,6 +9,12 @@ var LocationRepository = function(connection) {
     // __extends(LocationRepository, Repository);
 }
 
+LocationRepository.prototype.empty = function() {
+    this.connection.then(function(db) {
+        db.collection('locations').remove({});
+    });
+};
+
 LocationRepository.prototype.all = function() {
     var deferred = q.defer();
 
@@ -20,12 +26,12 @@ LocationRepository.prototype.all = function() {
     });
 
     return deferred.promise;
-};
 
-LocationRepository.prototype.empty = function() {
-    this.connection.then(function(db) {
-        db.collection('locations').remove({});
-    });
+    // return deferred.promise.then(function(locations) {
+    //     locations.forEach(function(location) {
+    //         // programatically chain promises to transform each location
+    //     });
+    // });
 };
 
 LocationRepository.prototype.findBy = function(property, value) {

@@ -8,7 +8,7 @@ block content
 
     script#movementTemplate(type="text/template")
         article.movement.stream-item
-            h2 {{ movement.trainID }}
+            h2 {{ movement.company }} - {{ movement.trainID }}
             dl
                 dt Location
                 dd {{ movement.location.locationName }}
@@ -16,6 +16,9 @@ block content
 
                 dt Time
                 dd {{ movement.actualAt }}
+
+                dt Type
+                dd {{ movement.type }} - {{ movement.eventType }}
 
                 dt Delay
                 dd {{ movement.timetableVariation }} minutes late

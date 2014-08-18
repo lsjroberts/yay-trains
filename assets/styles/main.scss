@@ -51,6 +51,14 @@ h2 {
 
 .row {
     // max-width: 100%;
+
+    &.bleed {
+        max-width: 100%;
+
+        .large-12 {
+            padding: 0;
+        }
+    }
 }
 
 .form-group {
@@ -60,7 +68,8 @@ h2 {
 
     input[type="text"],
     input[type="date"],
-    input[type="time"] {
+    input[type="time"],
+    input[type="search"] {
         padding: .4em .8em;
         border: 1px solid $grey-border;
         font-family: $font-default;
@@ -161,13 +170,27 @@ h2 {
     }
 
     .station {
-        fill: $white;
-        stroke: $blue;
+        fill: $red;
         stroke-width: 4px;
 
         &:hover {
             fill: $green;
             stroke: $green;
+        }
+
+        &.on-time {
+            stroke: $blue;
+        }
+
+        &.delayed {
+            stroke: $red;
+        }
+
+        &.zoom-3,
+        &.zoom-4,
+        &.zoom-5,
+        &.zoom-6 {
+            // stroke-width: 1px;
         }
     }
 
@@ -183,40 +206,58 @@ h2 {
         }
     }
 
+    .map-land {
+        fill: rgb(193, 202, 177);
+    }
+
     .tooltip-visible {
         display: block;
     }
 }
 
 .stream {
-    .stream-item {
-        padding: 20px 30px;
-        border: 1px solid $grey-border-light;
-        box-shadow: 1px 1px 1px 0 $grey-shadow;
 
-        & + .stream-item {
-            margin-top: 20px;
+}
+
+.stream-item {
+    padding: 20px 30px;
+    border: 1px solid $grey-border-light;
+    box-shadow: 1px 1px 1px 0 $grey-shadow;
+
+    & + .stream-item {
+        margin-top: 20px;
+    }
+
+    h2 {
+
+    }
+
+    dl {
+        @extend %clearfix;
+
+        dt {
+            float: left;
+            clear: left;
+            width: 8em;
+            padding: .2em .4em .2em 0;
+            font-weight: bold;
         }
 
-        h2 {
-
-        }
-
-        dl {
-            @extend %clearfix;
-
-            dt {
-                float: left;
-                clear: left;
-                width: 8em;
-                padding: .2em .4em .2em 0;
-                font-weight: bold;
-            }
-
-            dd {
-                float: left;
-                padding: .2em .4em .2em 0;
-            }
+        dd {
+            float: left;
+            padding: .2em .4em .2em 0;
         }
     }
+}
+
+.search {
+
+}
+
+.search-results {
+
+}
+
+.search-item {
+
 }
